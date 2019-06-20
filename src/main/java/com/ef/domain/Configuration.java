@@ -1,8 +1,5 @@
 package com.ef.domain;
 
-import com.google.common.collect.Iterables;
-import com.google.common.collect.Streams;
-
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
@@ -50,38 +47,22 @@ public class Configuration {
 
   private static boolean validArgumentsFormat(List<String> args) {
 
-    for (int index = 0; index < args.size(); index++) {
-
-      if (isArgumentName(index) && !args.get(index).startsWith("--")
-          || isArgumentValue(index) && args.get(index).startsWith("--")) {
-
-        return false;
-
-      }
-
-    }
-
-    return true;
-
-  }
-
-  private static boolean isArgumentName(int index) {
-
-    return index % 2 == 0;
-
-  }
-
-  private static boolean isArgumentValue(int index) {
-
-    return index % 2 != 0;
+    return !args.stream().anyMatch(
+        arg -> !arg.startsWith("--")
+            || arg.split("--").length > 2
+            || arg.split("=").length != 2
+    );
 
   }
 
   private static List<Argument> getArguments(List<String> args) {
 
-    return Streams
-        .stream(Iterables.partition(args, 2))
-        .map(a -> new Argument(ArgumentEnum.fromString(a.get(0)), a.get(1)))
+    return args
+        .stream()
+        .map(a -> {
+          String[] argument = a.split("=");
+          return new Argument(ArgumentEnum.fromString(argument[0]), argument[1]);
+        })
         .collect(Collectors.toList());
 
   }
