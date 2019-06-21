@@ -1,14 +1,17 @@
 package com.ef.task;
 
-import com.ef.db.manager.DBManager;
 import com.ef.db.repository.LogRepository;
 import com.ef.domain.Log;
 import java.util.List;
 import java.util.stream.Collectors;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-public class DBWriter /*implements Runnable*/ {
+public class DBWriter implements Runnable {
 
-  /*private LogRepository repository;
+  private static final Logger logger = LoggerFactory.getLogger(DBWriter.class);
+
+  private LogRepository repository;
   private List<String> logs;
 
   public DBWriter(LogRepository repository, List<String> logs) {
@@ -19,23 +22,20 @@ public class DBWriter /*implements Runnable*/ {
   @Override
   public void run() {
 
+    logger.info("Mapping logs...");
+
     List<Log> logs = this.logs
         .stream()
         .map(Log::fromString)
         .collect(Collectors.toList());
 
-    repository.addAll(logs);
+    logger.info("Mapping logs... Done");
 
-  }*/
-
-  public static void temporal(LogRepository repository, List<String> logsStr) {
-
-    List<Log> logs = logsStr
-        .stream()
-        .map(Log::fromString)
-        .collect(Collectors.toList());
+    logger.info("Adding logs to database...");
 
     repository.addAll(logs);
+
+    logger.info("Adding logs to database... Done");
 
   }
 }

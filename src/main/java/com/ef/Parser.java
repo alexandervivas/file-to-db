@@ -8,11 +8,13 @@ import io.reactivex.Flowable;
 import io.reactivex.flowables.ConnectableFlowable;
 import java.io.BufferedReader;
 import java.io.FileReader;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 import java.util.stream.Collectors;
 import org.flywaydb.core.Flyway;
 import org.slf4j.Logger;
@@ -22,7 +24,8 @@ public class Parser {
 
   private static final Logger logger = LoggerFactory.getLogger(Parser.class);
 
-  //private static ExecutorService executorService;
+  private static ExecutorService executorService = Executors.newCachedThreadPool();
+  ;
 
   public static void main(String[] args) {
 
@@ -40,8 +43,6 @@ public class Parser {
       performMigration();
 
       readAndSave(configuration.getAccessLog());
-
-      //executorService = Executors.newCachedThreadPool();
 
     } else {
 
@@ -65,22 +66,28 @@ public class Parser {
 
   private static void readAndSave(String filename) {
     LogRepository repository = new LogRepository("mysql");// TODO read this from config file
+    List<Future> tasks = new ArrayList<>();
     // read with backpressure
     Flowable<List<String>> flowable = Flowable.using(
         () -> new BufferedReader(new FileReader(filename)),
         reader -> Flowable.fromIterable(() -> reader.lines().iterator()),
-        BufferedReader::close
-    ).buffer(1000);// TODO read this from a config file
+        BufferedReader::close)
+        .buffer(1000)
+        .doOnComplete(() -> {
+          logger.info("Finished emiting..............................................");
+          for (Future<?> future : tasks) {
+            future.get();
+          }
+          logger.info("THAT'S IT!");
+          executorService.shutdown();
+        });
 
     ConnectableFlowable<List<String>> cFlowable = flowable.publish();
 
-    cFlowable.subscribe(list -> DBWriter.temporal(repository, list));
+    cFlowable.subscribe(list -> tasks.add(executorService.submit(new DBWriter(repository, list))));
 
     cFlowable.connect();
 
-  }
-
-  private static void saveIntoDatabase(List<Log> logs) {
 
   }
 
