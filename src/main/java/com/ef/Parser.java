@@ -67,7 +67,7 @@ public class Parser {
   private static void readAndSave(String filename) {
     LogRepository repository = new LogRepository("mysql");// TODO read this from config file
     List<Future> tasks = new ArrayList<>();
-    // read with backpressure
+
     Flowable<List<String>> flowable = Flowable
         .using(() -> new BufferedReader(new FileReader(filename)),
             reader -> Flowable.fromIterable(() -> reader.lines().iterator()), BufferedReader::close)
