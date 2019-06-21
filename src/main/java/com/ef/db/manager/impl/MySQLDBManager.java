@@ -21,6 +21,8 @@ public class MySQLDBManager implements DBManager {
       pool.setJdbcUrl("jdbc:mysql://localhost:3306/wallethub");
       pool.setUser("root");
       pool.setPassword("wallethub");
+      pool.setInitialPoolSize(10);
+      pool.setMaxPoolSize(100);
 
     } catch (PropertyVetoException e) {
 

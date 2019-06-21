@@ -68,17 +68,15 @@ public class Parser {
     LogRepository repository = new LogRepository("mysql");// TODO read this from config file
     List<Future> tasks = new ArrayList<>();
     // read with backpressure
-    Flowable<List<String>> flowable = Flowable.using(
-        () -> new BufferedReader(new FileReader(filename)),
-        reader -> Flowable.fromIterable(() -> reader.lines().iterator()),
-        BufferedReader::close)
-        .buffer(1000)
-        .doOnComplete(() -> {
-          logger.info("Finished emiting..............................................");
+    Flowable<List<String>> flowable = Flowable
+        .using(() -> new BufferedReader(new FileReader(filename)),
+            reader -> Flowable.fromIterable(() -> reader.lines().iterator()), BufferedReader::close)
+        .buffer(1000).doOnComplete(() -> {
+          logger.info("Finished reading the file");
           for (Future<?> future : tasks) {
             future.get();
           }
-          logger.info("THAT'S IT!");
+          logger.info("All log entries saved in database");
           executorService.shutdown();
         });
 

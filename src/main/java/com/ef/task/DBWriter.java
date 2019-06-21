@@ -22,20 +22,20 @@ public class DBWriter implements Runnable {
   @Override
   public void run() {
 
-    logger.info("Mapping logs...");
+    logger.debug("Mapping logs...");
 
     List<Log> logs = this.logs
         .stream()
         .map(Log::fromString)
         .collect(Collectors.toList());
 
-    logger.info("Mapping logs... Done");
+    logger.debug("Mapping logs... Done");
 
-    logger.info("Adding logs to database...");
+    logger.debug("Adding logs to database...");
 
     repository.addAll(logs);
 
-    logger.info("Adding logs to database... Done");
+    logger.debug("Adding logs to database... Done");
 
   }
 }
