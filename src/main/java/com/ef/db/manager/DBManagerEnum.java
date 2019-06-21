@@ -1,28 +1,28 @@
-package com.ef.domain;
+package com.ef.db.manager;
 
 import java.util.Arrays;
 
-public enum ArgumentEnum {
+public enum DBManagerEnum {
 
-  START_DATE("--startDate"),
-  DURATION("--duration"),
-  THRESHOLD("--threshold"),
-  ACCESSLOG("--accesslog"),
+  MYSQL("mysql"),
+  H2("h2"),
   UNKNOWN("");
 
   private String name;
 
-  ArgumentEnum(String name) {
+  DBManagerEnum(String name) {
     this.name = name;
   }
 
-  public static ArgumentEnum fromString(final String name) {
+  public static DBManagerEnum fromString(String name) {
+
     return Arrays
         .asList(values())
         .stream()
         .filter(arg -> arg.name.equals(name))
         .findFirst()
         .orElse(UNKNOWN);
+
   }
 
 }

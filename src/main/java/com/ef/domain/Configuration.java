@@ -11,6 +11,7 @@ public class Configuration {
   private LocalDate startDate;
   private DurationEnum duration;
   private Integer threshold;
+  private String accessLog;
 
   private Configuration() {
 
@@ -33,6 +34,9 @@ public class Configuration {
           case START_DATE:
             configuration.startDate = LocalDate.parse(argument.getValue(), DateTimeFormatter
                 .ofPattern("yyyy-MM-dd.HH:mm:ss"));// TODO read this from a config file
+            break;
+          case ACCESSLOG:
+            configuration.accessLog = argument.getValue();
             break;
         }
       }
@@ -67,4 +71,7 @@ public class Configuration {
 
   }
 
+  public String getAccessLog() {
+    return accessLog;
+  }
 }
