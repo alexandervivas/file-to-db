@@ -1,6 +1,6 @@
 package com.ef.domain;
 
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Optional;
@@ -8,7 +8,7 @@ import java.util.stream.Collectors;
 
 public class Configuration {
 
-  private LocalDate startDate;
+  private LocalDateTime startDate;
   private DurationEnum duration;
   private Integer threshold;
   private String accessLog;
@@ -32,7 +32,7 @@ public class Configuration {
             configuration.threshold = Integer.parseInt(argument.getValue());
             break;
           case START_DATE:
-            configuration.startDate = LocalDate.parse(argument.getValue(), DateTimeFormatter
+            configuration.startDate = LocalDateTime.parse(argument.getValue(), DateTimeFormatter
                 .ofPattern("yyyy-MM-dd.HH:mm:ss"));// TODO read this from a config file
             break;
           case ACCESSLOG:
@@ -73,5 +73,17 @@ public class Configuration {
 
   public String getAccessLog() {
     return accessLog;
+  }
+
+  public LocalDateTime getStartDate() {
+    return startDate;
+  }
+
+  public DurationEnum getDuration() {
+    return duration;
+  }
+
+  public Integer getThreshold() {
+    return threshold;
   }
 }

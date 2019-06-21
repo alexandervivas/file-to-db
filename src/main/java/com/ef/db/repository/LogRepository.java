@@ -5,8 +5,10 @@ import com.ef.db.manager.DBManager;
 import com.ef.db.manager.DBManagerEnum;
 import com.ef.db.manager.DBManagerFactory;
 import com.ef.domain.Log;
+import com.ef.domain.PotentialRisk;
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.time.LocalDateTime;
 import java.util.List;
 
 public class LogRepository {
@@ -26,7 +28,6 @@ public class LogRepository {
   public void addAll(List<Log> logs) {
 
     Connection connection = dbManager.getConnection();
-
     LogDAO dao = new LogDAO(dbManager, connection);
 
     try {
@@ -51,6 +52,20 @@ public class LogRepository {
       dbManager.returnConnection(connection);
 
     }
+
+  }
+
+  public List<PotentialRisk> getPotentialRisk(LocalDateTime startDate, LocalDateTime endDate,
+      Integer threshold) {
+
+    Connection connection = dbManager.getConnection();
+    LogDAO dao = new LogDAO(dbManager, connection);
+
+    List<PotentialRisk> result = dao.getPotentialRisk(startDate, endDate, threshold);
+
+    dbManager.returnConnection(connection);
+
+    return result;
 
   }
 

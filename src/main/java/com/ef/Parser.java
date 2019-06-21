@@ -2,8 +2,9 @@ package com.ef;
 
 import com.ef.db.repository.LogRepository;
 import com.ef.domain.Configuration;
-import com.ef.domain.Log;
+import com.ef.domain.PotentialRisk;
 import com.ef.task.DBWriter;
+import com.ef.util.DateUtil;
 import io.reactivex.Flowable;
 import io.reactivex.flowables.ConnectableFlowable;
 import java.io.BufferedReader;
@@ -12,10 +13,10 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
-import java.util.stream.Collectors;
 import org.flywaydb.core.Flyway;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -23,11 +24,11 @@ import org.slf4j.LoggerFactory;
 public class Parser {
 
   private static final Logger logger = LoggerFactory.getLogger(Parser.class);
-
   private static ExecutorService executorService = Executors.newCachedThreadPool();
-  ;
+  private static Configuration configuration = null;
 
-  public static void main(String[] args) {
+  public static void main(
+      String[] args) {// TODO too much logic here, needs refactor to place logic into controller
 
     logger.info("Reading arguments...");
 
@@ -38,11 +39,11 @@ public class Parser {
 
       logger.info("Done");
 
-      Configuration configuration = optionalConfiguration.get();
+      configuration = optionalConfiguration.get();
 
       performMigration();
 
-      readAndSave(configuration.getAccessLog());
+      readSaveAndQuery();
 
     } else {
 
@@ -64,20 +65,35 @@ public class Parser {
 
   }
 
-  private static void readAndSave(String filename) {
+  private static void readSaveAndQuery() {
     LogRepository repository = new LogRepository("mysql");// TODO read this from config file
     List<Future> tasks = new ArrayList<>();
 
     Flowable<List<String>> flowable = Flowable
-        .using(() -> new BufferedReader(new FileReader(filename)),
+        .using(() -> new BufferedReader(new FileReader(configuration.getAccessLog())),
             reader -> Flowable.fromIterable(() -> reader.lines().iterator()), BufferedReader::close)
         .buffer(1000).doOnComplete(() -> {
+
           logger.info("Finished reading the file");
+
           for (Future<?> future : tasks) {
             future.get();
           }
+
           logger.info("All log entries saved in database");
+
           executorService.shutdown();
+
+          logger.info("Getting potentially dangerous IP's");
+
+          List<PotentialRisk> potentialRisks = repository
+              .getPotentialRisk(configuration.getStartDate(),
+                  DateUtil.getEndDate(configuration.getStartDate(), configuration.getDuration()),
+                  configuration.getThreshold());
+
+          potentialRisks.forEach(risk -> logger.info(risk.toString()));
+
+
         });
 
     ConnectableFlowable<List<String>> cFlowable = flowable.publish();
