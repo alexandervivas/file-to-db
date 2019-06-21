@@ -36,7 +36,8 @@ public class Parser {
     logger.info("Performing database migration");
 
     Flyway flyway = Flyway.configure()
-        .dataSource("jdbc:mysql://localhost:3306/wallethub", "root", "wallethub").load();
+        .dataSource("jdbc:mysql://localhost:3306/wallethub", "root", "wallethub")
+        .load();// TODO read this from config file
     flyway.migrate();
 
     logger.info("Done");
