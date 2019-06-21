@@ -10,6 +10,14 @@ public class PotentialRisk {
     this.requests = requests;
   }
 
+  public String getIp() {
+    return ip;
+  }
+
+  public Long getRequests() {
+    return requests;
+  }
+
   @Override
   public String toString() {
     return "PotentialRisk{" +

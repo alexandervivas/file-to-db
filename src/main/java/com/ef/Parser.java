@@ -1,6 +1,7 @@
 package com.ef;
 
 import com.ef.db.repository.LogRepository;
+import com.ef.db.repository.RiskRepository;
 import com.ef.domain.Configuration;
 import com.ef.domain.PotentialRisk;
 import com.ef.task.DBWriter;
@@ -13,7 +14,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
@@ -66,7 +66,9 @@ public class Parser {
   }
 
   private static void readSaveAndQuery() {
-    LogRepository repository = new LogRepository("mysql");// TODO read this from config file
+
+    LogRepository logRepository = new LogRepository("mysql");// TODO read this from config file
+    RiskRepository riskRepository = new RiskRepository("mysql");// TODO read this from config file
     List<Future> tasks = new ArrayList<>();
 
     Flowable<List<String>> flowable = Flowable
@@ -86,19 +88,25 @@ public class Parser {
 
           logger.info("Getting potentially dangerous IP's");
 
-          List<PotentialRisk> potentialRisks = repository
+          List<PotentialRisk> potentialRisks = logRepository
               .getPotentialRisk(configuration.getStartDate(),
                   DateUtil.getEndDate(configuration.getStartDate(), configuration.getDuration()),
                   configuration.getThreshold());
 
           potentialRisks.forEach(risk -> logger.info(risk.toString()));
 
+          logger.info("Adding potential risk to the black list section on db");
+
+          riskRepository.addAll(potentialRisks);
+
+          logger.info("Done");
 
         });
 
     ConnectableFlowable<List<String>> cFlowable = flowable.publish();
 
-    cFlowable.subscribe(list -> tasks.add(executorService.submit(new DBWriter(repository, list))));
+    cFlowable
+        .subscribe(list -> tasks.add(executorService.submit(new DBWriter(logRepository, list))));
 
     cFlowable.connect();
 
